@@ -339,13 +339,14 @@ conjunto de valores para retornar um único
 valor resumido. Elas são essenciais para
 transformar dados brutos em informações
 estratégicas.
-|Função      | Finalidade                            | Tipos de Dados Compatíveis |
-|------------|---------------------------------------|----------------------------|
-|COUNT       | Conta o número de registros (linhas)  | Qualquer tipo              |
-|SUM         | Soma os valores de uma coluna         | Apenas Numéricos           |
-|AVG         | Calcula a média aritméticados valores | Apenas Numéricos           |
-|MAX         | Identifica o valor máximo (maior)     | Numéricos, Datas e Texto   |
-|MIN         | Identifica o valor mínimo (menor)     | Numéricos, Datas e Texto   |
+
+|Função      | Finalidade                             | Tipos de Dados Compatíveis |
+|------------|----------------------------------------|----------------------------|
+|COUNT       | Conta o número de registros (linhas).  | Qualquer tipo              |
+|SUM         | Soma os valores de uma coluna          | Apenas Numéricos           |
+|AVG         | Calcula a média aritméticados valores  | Apenas Numéricos           |
+|MAX         | Identifica o valor máximo (maior).     | Numéricos, Datas e Texto   |
+|MIN         | Identifica o valor mínimo (menor).     | Numéricos, Datas e Texto   |
 
 **Cláusula GROUP BY (Agrupamento)**
 - A cláusula GROUP BY é utilizada para organizar linhas que possuem valores idênticos em
