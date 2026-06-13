@@ -362,3 +362,226 @@ Se você tem uma tabela de vendas e usa GROUP BY regiao, o SQL pegará todas as 
 "Sul", "Norte" e "Leste" e entregará apenas uma linha para cada região com os totais
 somados.
 
+>#### **Procedures e Functions**
+
+**SQL é um Padrão (ANSI/ISO)**
+ SQL (Structured Query Language) não pertence a uma única empresa; ele é uma linguagem
+padronizada.
+- A Norma: Definida pela ANSI e ISO, garante que comandos básicos como SELECT, INSERT, UPDATE e
+DELETE funcionem de forma quase idêntica em qualquer banco de dados.
+- Pensem no SQL padrão como o "Inglês Formal". Todos se entendem, mas cada país (ou banco de
+dados) tem suas próprias gírias e expressões regionais.
+
+**O que são procedures e functions?**
+Stored Procedures (Procedimentos Armazenados)
+Pensem nelas como scripts de ação. Elas servem para executar processos que podem envolver várias etapas.
+- Focadas em ações: podem inserir, atualizar e deletar dados.
+- Podem retornar múltiplos valores ou nenhum.
+- São chamadas via comando EXEC (T-SQL) ou CALL (PL/SQL e MySQL)
+
+**User-Defined Functions (Funções)**
+ Pensem nelas como calculadoras.
+Elas servem para transformar dados ou realizar cálculosespecíficos.
+- Focadas em cálculos: obrigatoriamente retornam um valor (ou uma tabela).
+- Ideais para lógica matemática ou formatação de strings.
+- Podem ser usadas diretamente dentro de um SELECT
+
+|               T-SQL (SQL Server)             |           PL/SQL (Oracle) / MySQL              |
+|----------------------------------------------|------------------------------------------------|
+|      CREATE PROCEDURE NovoPreco @id INT      |       CREATE PROCEDURE NovoPreco (id INT       |
+|                       AS                     |                       BEGIN                    |
+|UPDATE Produtos SET Preco = 10 WHERE ID = @id;| UPDATE Produtos SET Preco = 10 WHERE ID = id;  |
+|                       GO                     |                        END                     |
+
+**O Poder do SQL Procedural**
+Independente de ser T-SQL, PL/SQL ou MySQL, utilizamos
+essas extensões para ir além do simples SELECT. Elas
+permitem criar blocos de código reutilizáveis.
+
+**T-SQL vs. PL/SQL**
+Embora ambos sigam o padrão SQL, eles são extensões
+proprietárias que adicionam lógica de programação (loops,
+variáveis, tratamento de erros).
+
+|      Característica      | T-SQL (Transact-SQL)                            |   PL/SQL (Procedural Language/SQL)      |
+|--------------------------|-------------------------------------------------|-----------------------------------------|
+| Principal Mantenedora    |       Microsoft                                 |                 Oracle                  |   
+| Outros Bancos/Empresas   | MS SQL Server Sybase (SAP ASE) AWS (Babelfish)  | IBM (DB2) MySQL EnterpriseDB (Postgres) |
+| Foco de Uso              | Integração nativa com Windows, .NET e ferramentas de BI da Microsoft (Power BI).          | 
+Aplicações críticas
+empresariais, ERPs de
+grande porte e sistemas
+bancários complexos.
+
+**Database First vs Code First**
+Code First (O Código Primeiro)
+- Como funciona: Você escreve as classes (objetos) em sua linguagem de programação (C#, Java, Python), e o framework
+gera o banco de dados automaticamente.
+- Vantagem: Foco total na lógica do negócio. O controle de versão do banco fica no próprio código (Migrations).
+- Ideal para: Projetos novos (Greenfield) onde o desenvolvedor tem controle total.
+- Database First (O Banco Primeiro)
+- Como funciona: O banco de dados já existe ou é criado via SQL. O framework mapeia as tabelas existentes e gera as
+classes no código.
+- Vantagem: Permite usar toda a potência do DBA (índices complexos, triggers) sem depender da tradução do framework.
+- Ideal para: Sistemas legados ou quando há uma equipe dedicada exclusivamente à modelagem de dados.
+
+>#### Triggers
+
+**Introdução às Triggers no PostgreSQL**
+O que são? Triggers (gatilhos) são operações realizadas de forma espontânea pelo banco de
+dados em resposta a eventos específicos
+Eventos Geradores: Ocorrem principalmente durante instruções DML:
+- INSERT (Inserção de dados).
+- UPDATE (Atualização de dados).
+- DELETE (Remoção de dados).
+- TRUNCATE (Esvaziamento de tabela)
+Utilidade: Manter a integridade de dados complexos, realizar auditorias (logs) e automatizar
+tarefas que devem ocorrer antes ou depois de uma modificação.
+
+**Trigger vs. Trigger Function**
+É fundamental entender que, no PostgreSQL, estas são duas
+entidades distintas:
+- Trigger Function (Como fazer): É a função que contém a lógica a
+ser executada. Criada com o comando CREATE FUNCTION.
+- Trigger (O que/Quando fazer): É o gatilho propriamente dito que
+associa um evento de uma tabela à função criada. Criado com o
+comando CREATE TRIGGER.
+
+**Níveis de Execução e Timing**
+Ao definir uma trigger, você deve escolher o momento e a frequência:
+  Timing:
+- BEFORE: Executa a função antes da operação no banco (útil para validações).
+- AFTER: Executa a função depois da operação (útil para logs e auditorias).
+  Níveis de Gatilho:
+- Row-level (FOR EACH ROW): A trigger é disparada para cada linha afetada pela
+instrução SQL.
+- Statement-level (FOR EACH STATEMENT): A trigger é disparada apenas uma vez
+por instrução SQL, independentemente de quantas linhas foram afetadas.
+
+**Variáveis Especiais (NEW e OLD)**
+As Trigger Functions utilizam uma estrutura de dados chamada TriggerData,
+que fornece variáveis locais essenciais:
+- NEW: Variável do tipo RECORD que contém a nova linha de dados (disponível
+em INSERT e UPDATE)
+- OLD: Variável do tipo RECORD que contém a linha antiga, antes da
+modificação (disponível em UPDATE e DELETE)
+ TG_TABLE_NAME: Variável que armazena o nome da tabela que disparou o
+gatilho.
+
+**Sintaxe da Trigger Function (PL/pgSQL)**
+Para criar a função que o gatilho chamará:
+- CREATE FUNCTION nome_da_funcao()
+- RETURNS trigger AS $$
+- BEGIN
+ -- Lógica da função aqui
+ -- Exemplo: INSERT INTO auditoria VALUES (NEW.id, now());
+- RETURN NEW; -- Em row-level triggers, deve-se retornar o registro
+- END;
+- $$ LANGUAGE plpgsql;
+Nota: Diferente de funções comuns, elas não recebem argumentos diretamente na declaração, mas sim
+através da estrutura TriggerData.
+
+**Sintaxe da Criação da Trigger**
+Após criar a função, vinculamos à tabela:
+- CREATE TRIGGER nome_do_gatilho
+- { BEFORE | AFTER | INSTEAD OF } { evento [ OR ... ] } ON nome_da_tabela
+- [ FOR EACH { ROW | STATEMENT } ]
+- EXECUTE PROCEDURE nome_da_funcao(argumentos);
+Eventos: Podem ser combinados (ex: INSERT OR UPDATE).
+
+#### Resumo e Boas Práticas
+
+- **Use Triggers para:** Logs, garantir integridade referencial
+complexa e automação baseada em linhas.
+- **Cuidado com a Complexidade:** À medida que o banco cresce,
+triggers mal projetadas podem dificultar a solução de
+problemas e afetar a performance
+- **Manutenção:** Use DROP TRIGGER nome ON tabela para
+remover gatilhos desnecessários.
+
+
+### TCL e DCL
+**O que é TCL?**
+***TCL (Transaction Control Language)***
+Linguagem responsável pelo controle de transações no banco de dados.
+- Objetivo, garantir:
+- segurança
+- consistência
+- integridade dos dados
+
+**O que é uma transação?**
+Uma transação é um conjunto de operações
+executadas como uma única unidade lógica.
+oUPDATE conta SET saldo = saldo - 100 WHERE id = 1;
+oUPDATE conta SET saldo = saldo + 100 WHERE id = 2;
+
+**Principais comandos TCL**
+|           Comando                   |               Função            |
+|-------------------------------------|---------------------------------|
+|       BEGIN / START TRANSACTION     |        inicia transação         |
+|       COMMIT                        |        confirma alterações      |
+|       ROLLBACK                      |         desfaz alterações       |
+|       SAVEPOINT                     |      cria ponto de restauração  |
+
+#### **Demonstração TCL**
+
+**Propriedades ACID**
+|    Letra     |     Significado     |
+|--------------|---------------------|
+|      A       |      Atomicidade    |
+|      C       |      Consistência   |
+|      I       |      Isolamento     |
+|      D       |      Durabilidade   |
+
+**Sintaxe da Trigger Function (PL/pgSQL)**
+- Atomicidade
+ Tudo ou nada.
+- Consistência
+ Dados válidos após transação.
+- Isolamento
+ Transações independentes.
+- Durabilidade
+o Após COMMIT, os dados permanecem salvos.
+
+**O que é DCL?**
+DCL (Data Control Language)
+- Linguagem responsável pelo controle de permissões e segurança.
+
+**Objetivo do DCL**
+Controlar:
+- quem pode acessar
+- quem pode alterar
+- quem pode excluir dados
+
+**Principais comandos DCL**
+|       Comando      |        Função      |
+|--------------------|--------------------|
+|       GRANT        | concede permissões |
+|       REVOKE       | remove  permissões |
+
+**GRANT**
+GRANT SELECT, INSERT
+ON clientes
+TO usuario1;
+
+usuário pode:
+- consultar
+- inserir dados
+
+**REVOKE**
+REVOKE INSERT
+- ON clientes
+- FROM usuario1;
+  usuário perde permissão de inserção.
+
+**Exemplo real** Demonstração DCL
+|   Usuário    |      Permissões          |
+|--------------|--------------------------|
+| Admin Total  | Vendedor SELECT, INSERT  |
+| Cliente      | Apenas SELECT            |
+
+
+
+
+
+
